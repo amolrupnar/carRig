@@ -7,6 +7,7 @@ from carRig.ui import fill_ui_elem
 from carRig.mods import wheel
 
 reload(car_ui)
+reload(wheel)
 
 mayaMainWindowPtr = omui.MQtUtil.mainWindow()
 maya_main_window = wrapInstance(long(mayaMainWindowPtr), QtGui.QWidget)

@@ -11,20 +11,34 @@ def addStretchRig(start_ctl, end_ctl, name, ctl_side, main_ctl):
     :param main_ctl: string
     :return: wheel_rig
     """
+    # create all sets.
+    if not pm.objExists('CarSet'):
+        axelJointsSet = pm.sets(n='AxelJointsSet')
+        axelConnectorSet = pm.sets(n='AxelConnectorSet')
+        axelSkinJointsSet = pm.sets(n='AxelSkinJointsSet')
+        pm.sets(axelJointsSet, axelConnectorSet, axelSkinJointsSet, n='CarSet')
+    else:
+        axelJointsSet = pm.PyNode('AxelJointsSet')
+        axelConnectorSet = pm.PyNode('AxelConnectorSet')
+        axelSkinJointsSet = pm.PyNode('AxelSkinJointsSet')
+
     # axel start joint.
     pm.select(cl=True)
     st_axel_jt = pm.joint(n=name + ctl_side)
     pm.delete(pm.parentConstraint(start_ctl, st_axel_jt))
+    pm.sets(axelJointsSet, add=st_axel_jt)
     # axel end joint.
     pm.select(cl=True)
     end_axel_jt = pm.joint(n=name + 'End' + ctl_side)
     pm.delete(pm.parentConstraint(end_ctl, end_axel_jt))
     pm.parent(end_axel_jt, st_axel_jt)
+    pm.sets(axelJointsSet, add=end_axel_jt)
     # axel connector joint.
     pm.select(cl=True)
     axelConnector_jt = pm.joint(n=name + 'Connector' + ctl_side)
     pm.delete(pm.parentConstraint(end_axel_jt, axelConnector_jt))
     pm.pointConstraint(end_axel_jt, axelConnector_jt)
+    pm.sets(axelConnectorSet, add=axelConnector_jt)
     # parent in start controller.
     pm.parent(st_axel_jt, axelConnector_jt, start_ctl)
     # add ik handle.
@@ -50,8 +64,10 @@ def addStretchRig(start_ctl, end_ctl, name, ctl_side, main_ctl):
     # add skinning joints.
     pm.select(cl=True)
     skinning_joint_start = pm.joint(n=name + '_StartSkinJoint' + ctl_side)
+    pm.sets(axelSkinJointsSet, add=skinning_joint_start)
     pm.select(cl=True)
     skinning_joint_end = pm.joint(n=name + '_EndSkinJoint' + ctl_side)
+    pm.sets(axelSkinJointsSet, add=skinning_joint_end)
     pm.delete(pm.parentConstraint(start_ctl, skinning_joint_start))
     pm.delete(pm.parentConstraint(end_ctl, skinning_joint_end))
     # parent skin joints.
