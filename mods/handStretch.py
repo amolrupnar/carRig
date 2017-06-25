@@ -2,7 +2,8 @@ import pymel.core as pm
 import maya.OpenMaya as om
 
 
-def handStretch(start_ctl, end_ctl, maxPivot, jointStretchy, mainController='Main', name='HandStretch', side='_L'):
+def handStretch(start_ctl, end_ctl, maxPivot, jointStretchy, mainController='Main', name='HandStretch', side='_L',
+                addSkinJoints=False):
     """
     add stretch in straight hand.
     :param start_ctl: string
@@ -12,6 +13,7 @@ def handStretch(start_ctl, end_ctl, maxPivot, jointStretchy, mainController='Mai
     :param mainController: string
     :param name: string
     :param side: string
+    :param addSkinJoints: bool
     :return: stretchNodes
     """
     # convert all inputs in to PyNode.
@@ -53,3 +55,16 @@ def handStretch(start_ctl, end_ctl, maxPivot, jointStretchy, mainController='Mai
     mdn_main_scale.outputX.connect(cond_node.secondTerm)
     mdn_stretch.outputX.connect(cond_node.colorIfTrueR)
     cond_node.outColorR.connect(jointStretchy.sx)
+    if addSkinJoints:
+        pm.select(cl=True)
+        skinning_joint_start = pm.joint(n=name + '_StartSkinJoint' + side)
+        pm.select(cl=True)
+        skinning_joint_end = pm.joint(n=name + '_EndSkinJoint' + side)
+        pm.delete(pm.parentConstraint(start_ctl, skinning_joint_start))
+        pm.delete(pm.parentConstraint(end_ctl, skinning_joint_end))
+        # parent skin joints.
+        pm.parent(skinning_joint_start, jointStretchy)
+        pm.parent(skinning_joint_end, jointStretchy)
+        pm.makeIdentity(skinning_joint_start, apply=True, t=1, r=1, s=1, n=0, pn=1)
+        pm.makeIdentity(skinning_joint_end, apply=True, t=1, r=1, s=1, n=0, pn=1)
+        pm.pointConstraint(end_ctl, skinning_joint_end, mo=True)
